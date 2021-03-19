@@ -1,0 +1,77 @@
+- hosts: all
+  user: vagrant
+  become: yes
+  vars:
+    config_path: '/vagrant'
+  tasks:
+    - name: Install dnf packages.
+      dnf:
+        name:
+          - python38
+          - python38-devel
+          - python38-pip
+          - '@Development tools'
+        state: latest
+
+    - name: Install MySQL Server.
+      dnf:
+        name:
+          - mysql-server
+          - mysql
+          - python38-PyMySQL
+          - python3-PyMySQL
+        state: latest
+
+    - name: Enable & Starting MySQL Service.
+      systemd: name=mysqld state=started enabled=true   
+
+    - name: Update mysql root user password.
+      mysql_user:
+        login_user: root
+        login_password: ""
+        name: root
+        password: root
+        check_implicit_admin: yes
+        priv: '*.*:ALL,GRANT'
+        state: present
+
+    - name: Create mysql user.
+      mysql_user:
+        login_user: root
+        login_password: root
+        name: student
+        password: student
+        host: "%"
+        priv: '*.*:ALL,GRANT'
+        state: present
+
+    - name: Create a new database.
+      mysql_db:
+        login_user: student
+        login_password: student
+        name: hirocom
+        state: present
+    
+    - name: Create a new tables.
+      mysql_db:
+        login_user: student
+        login_password: student
+        name: hirocom
+        state: import
+        target: ./create_for_mysql.sql
+
+    - name: insert a new data.
+      mysql_db:
+        login_user: student
+        login_password: student
+        name: hirocom
+        state: import
+        target: ./data.sql
+
+
+
+
+
+
+
+
